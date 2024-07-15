@@ -1,0 +1,47 @@
+{% extends './base.html' %}
+
+{% block title %}Estudiante{% endblock %}
+
+{% block customCSS %}
+<style>
+    .student-info {
+        margin-top: 20px;
+    }
+    .student-info p {
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<h2>Bienvenido, {{ current_user.username }}</h2>
+<p>Rol: {{ current_user.rol }}</p>
+
+{% if alumno %}
+<div class="student-info">
+    <h3>Información del Estudiante</h3>
+    <p><strong>ID:</strong> {{ alumno.id_alumno }}</p>
+    <p><strong>Nombre:</strong> {{ alumno.nombre }} {{ alumno.apellido }} {{ alumno.segundo_apellido }}</p>
+    <p><strong>Fecha de Nacimiento:</strong> {{ alumno.fecha_nacimiento }}</p>
+    <p><strong>Dirección:</strong> {{ alumno.direccion }}</p>
+    <p><strong>Teléfono:</strong> {{ alumno.numero }}</p>
+    <p><strong>ID Carrera:</strong> {{ alumno.id_carrera }}</p>
+    <p><strong>Matrícula:</strong> {{ alumno.matricula }}</p>
+    <p><strong>Generación:</strong> {{ alumno.generacion }}</p>
+    <p><strong>Estado:</strong> {{ alumno.estado }}</p>
+    <p><strong>ID Carrera:</strong> {{ alumno.fecha_ingreso }}</p>
+    <p><strong>Correo:</strong> {{ alumno.correo }}</p>
+    <p><strong>Género:</strong> {{ alumno.estado }}</p>
+    <p><strong>ID Carrera:</strong> {{ alumno.preparatoria_egreso }}</p>
+    <p><strong>ID Carrera:</strong> {{ alumno.id_usuario }}</p>
+</div>
+<p>promedio general</p>
+<p>materias en curso</p>
+<p>calificaciones anteriores *promedio de ese cuatrimestre*</p>
+
+{% else %}
+<p>No se encontraron datos del estudiante.</p>
+{% endif %}
+
+<a class="btn btn-secondary" href="{{ url_for('logout') }}">Cerrar sesión</a>
+{% endblock %}

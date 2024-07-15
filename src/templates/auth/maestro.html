@@ -1,0 +1,11 @@
+
+{% extends './base.html' %}
+{% block title %}{% endblock %}
+{% block customCSS %}
+
+{% endblock %}
+{% block body %}
+<h2>hola maestro, {{ current_user.username, current_user.rol}}</h2>
+<a class="btn btn-secondary" href="{{ url_for('logout')}}">logout</a>
+
+{% endblock %}
