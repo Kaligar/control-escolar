@@ -28,6 +28,19 @@ class AlumnoModel:
             raise Exception(ex)
 
     @classmethod
+    def get_id_alumno_by_user_id(cls, user_id):
+        try:
+            connection = get_connection()
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT id_alumno FROM alumno WHERE id_usuario = %s", (user_id,))
+                result = cursor.fetchone()
+                return result[0] if result else None
+        except Exception as ex:
+            raise Exception(f"Error al obtener id_alumno: {ex}")
+        finally:
+            if connection:
+                connection.close()
+    @classmethod
     def get_alumno(cls, id_alumno):
         try:
             connection = get_connection()

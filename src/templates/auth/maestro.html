@@ -6,6 +6,7 @@
 {% endblock %}
 {% block body %}
 <h2>hola maestro, {{ current_user.username, current_user.rol}}</h2>
+<p>grupos:</p>
 <a class="btn btn-secondary" href="{{ url_for('logout')}}">logout</a>
 
 {% endblock %}

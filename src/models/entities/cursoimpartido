@@ -1,0 +1,14 @@
+class Calificacion():
+    def __init__(self, id_cursoimpartido, id_materia=None, id_alumno=None, id_maestro=None):
+        self.id_cursoimpartido = id_cursoimpartido
+        self.id_materia = id_materia
+        self.id_alumno = id_alumno
+        self.id_maestro = id_maestro
+        
+    def to_JSON(self):
+        return {
+            'id_calificacion': self.id_cursoimpartido,
+            'id_alumno': self.id_materia,
+            'id_materia': self.id_alumno,
+            'calificacion': self.id_maestro,
+        }

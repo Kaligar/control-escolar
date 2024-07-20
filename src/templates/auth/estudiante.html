@@ -4,11 +4,24 @@
 
 {% block customCSS %}
 <style>
-    .student-info {
-        margin-top: 20px;
+    .student-info, .materias-en-curso, .calificaciones-anteriores {
+        margin-top: 30px;
     }
     .student-info p {
         margin-bottom: 10px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #f2f2f2;
     }
 </style>
 {% endblock %}
@@ -29,15 +42,79 @@
     <p><strong>Matrícula:</strong> {{ alumno.matricula }}</p>
     <p><strong>Generación:</strong> {{ alumno.generacion }}</p>
     <p><strong>Estado:</strong> {{ alumno.estado }}</p>
-    <p><strong>ID Carrera:</strong> {{ alumno.fecha_ingreso }}</p>
+    <p><strong>Fecha de Ingreso:</strong> {{ alumno.fecha_ingreso }}</p>
     <p><strong>Correo:</strong> {{ alumno.correo }}</p>
-    <p><strong>Género:</strong> {{ alumno.estado }}</p>
-    <p><strong>ID Carrera:</strong> {{ alumno.preparatoria_egreso }}</p>
-    <p><strong>ID Carrera:</strong> {{ alumno.id_usuario }}</p>
+    <p><strong>Género:</strong> {{ alumno.genero }}</p>
+    <p><strong>Preparatoria de Egreso:</strong> {{ alumno.preparatoria_egreso }}</p>
 </div>
-<p>promedio general</p>
-<p>materias en curso</p>
-<p>calificaciones anteriores *promedio de ese cuatrimestre*</p>
+
+<h3>Calificaciones</h3>
+
+<p>Promedio general: [Cálculo pendiente]</p>
+
+<div class="materias-en-curso">
+    <h4>Materias en curso:</h4>
+{% if calificaciones_parciales %}
+    <table>
+        <thead>
+            <tr>
+                <th>Módulo</th>
+                <th>Clave</th>
+                <th>Materia</th>
+                <th>Parcial 1</th>
+                <th>Parcial 2</th>
+                <th>Parcial 3</th>
+                <th>Tipo</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for materia, info in calificaciones_parciales.items() %}
+            <tr>
+                <td>{{ info.modulo }}</td>
+                <td>{{ info.clave }}</td>
+                <td>{{ materia }}</td>
+                <td>{{ info.parciales.get('Parcial 1', {}).get('calificacion', 'N/A') }}</td>
+                <td>{{ info.parciales.get('Parcial 2', {}).get('calificacion', 'N/A') }}</td>
+                <td>{{ info.parciales.get('Parcial 3', {}).get('calificacion', 'N/A') }}</td>
+                <td>{{ info.parciales.get('Parcial 1', {}).get('tipo', 'N/A') }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No hay materias en curso actualmente.</p>
+{% endif %}
+</div>
+
+<div class="calificaciones-anteriores">
+    <h4>Calificaciones anteriores:</h4>
+    {% if calificaciones_anteriores %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Materia</th>
+                    <th>Calificación</th>
+                    <th>Tipo</th>
+                    <th>Clave</th>
+                    <th>Módulo</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for calificacion in calificaciones_anteriores %}
+                <tr>
+                    <td>{{ calificacion.materia }}</td>
+                    <td>{{ calificacion.calificacion }}</td>
+                    <td>{{ calificacion.tipo }}</td>
+                    <td>{{ calificacion.clave }}</td>
+                    <td>{{ calificacion.modulo }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No hay calificaciones anteriores disponibles.</p>
+    {% endif %}
+</div>
 
 {% else %}
 <p>No se encontraron datos del estudiante.</p>

@@ -1,13 +1,16 @@
+#herramientas
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_wtf.csrf import CSRFProtect
+#base de datos
 from config import config
 from database.db import get_connection
-# routes
+#rutas para consultas
 from routes import Alumno
 from models.entities.user import User
 from models.modelUser import ModelUser
 from models.AlumnoModel import AlumnoModel
+from models.calificacionModel import CalificacionModel
 
 app = Flask(__name__)
 
@@ -68,21 +71,42 @@ def logout():
 @login_required
 def maestro():
     if current_user.rol != 'maestro':
+        
         flash('No tienes permiso para acceder a esta página')
         return redirect(url_for('index'))
+    print(current_user.id)
     return render_template('auth/maestro.html')
 
 @app.route('/estudiante')
 @login_required
 def estudiante():
-    if current_user.rol != 'estudiante':
+    if current_user.rol.lower() != 'estudiante':
         flash('No tienes permiso para acceder a esta página')
         return redirect(url_for('index'))
     
-    # Obtener los datos del alumno actual
-    alumno_data = AlumnoModel.get_alumno(current_user.id)
-    return render_template('auth/estudiante.html', alumno=alumno_data)
-
+    try:
+        id_alumno = AlumnoModel.get_id_alumno_by_user_id(current_user.id)
+        
+        if id_alumno is None:
+            flash('No se encontró un alumno asociado a este usuario')
+            return redirect(url_for('index'))
+        
+        alumno_data = AlumnoModel.get_alumno(id_alumno)
+        calificaciones_parciales = CalificacionModel.calificaciones_parciales(id_alumno)
+        calificaciones_anteriores = CalificacionModel.calificaciones_anteriores(id_alumno)  # Asumiendo que tienes este método
+        
+        # Imprime las calificaciones para depuración
+        print("Calificaciones en curso:", calificaciones_parciales)
+        print("Calificaciones anteriores:", calificaciones_anteriores)
+        
+        return render_template('auth/estudiante.html', 
+                               alumno=alumno_data, 
+                               calificaciones_parciales=calificaciones_parciales,
+                               calificaciones_anteriores=calificaciones_anteriores)
+    except Exception as e:
+        app.logger.error(f"Error al obtener datos del estudiante: {str(e)}")
+        flash('Ocurrió un error al cargar los datos del estudiante')
+        return redirect(url_for('index'))
 
 @app.route('/protected')
 @login_required
