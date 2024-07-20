@@ -1,12 +1,24 @@
-
 {% extends './base.html' %}
-{% block title %}{% endblock %}
+
+{% block title %}Página del Maestro{% endblock %}
+
 {% block customCSS %}
-
+<!-- Aquí puedes añadir cualquier CSS personalizado -->
 {% endblock %}
-{% block body %}
-<h2>hola maestro, {{ current_user.username, current_user.rol}}</h2>
-<p>grupos:</p>
-<a class="btn btn-secondary" href="{{ url_for('logout')}}">logout</a>
 
+{% block body %}
+<h2>Hola maestro, {{ current_user.username }} ({{ current_user.rol }})</h2>
+<p>Hola, {{ maestro.nombre }}</p>
+
+<p>Grupos:</p>
+{% if grupo %}
+    {% for g in grupo %}
+    <a href="{{ url_for('grupo_detalle', grupo_id=g.grupo) }}">Grupo: {{ g.grupo }}</a>
+    <p>Carrera: {{ g.carrera }}</p>
+    {% endfor %}
+{% else %}
+    <p>No se encontraron grupos</p>
+{% endif %}
+
+<a class="btn btn-secondary" href="{{ url_for('logout') }}">Logout</a>
 {% endblock %}

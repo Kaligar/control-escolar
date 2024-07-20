@@ -11,6 +11,8 @@ from models.entities.user import User
 from models.modelUser import ModelUser
 from models.AlumnoModel import AlumnoModel
 from models.calificacionModel import CalificacionModel
+from models.maestroModel import MaestroModel
+from models.ModelGrupo import ModelGrupo
 
 app = Flask(__name__)
 
@@ -70,13 +72,53 @@ def logout():
 @app.route('/maestro')
 @login_required
 def maestro():
-    if current_user.rol != 'maestro':
-        
+    if current_user.rol.lower() != 'maestro':
         flash('No tienes permiso para acceder a esta página')
         return redirect(url_for('index'))
-    print(current_user.id)
-    return render_template('auth/maestro.html')
+    
+    try:
+        id_maestro = MaestroModel.get_id_maestro_by_user_id(current_user.id)
+        
+        
+        if id_maestro is None:
+            flash('No se encontró un alumno asociado a este usuario')
+            return redirect(url_for('index'))
+        
+        maestro_data = MaestroModel.get_maestro(id_maestro)
+        grupo_data = ModelGrupo.get_grupo_maestro(id_maestro)
+        
+        
+        return render_template('auth/maestro.html', 
+                               maestro=maestro_data,
+                               grupo=grupo_data)
+    except Exception as e:
+        
+        app.logger.error(f"Error al obtener datos del maestro: {str(e)}")
+        flash('Ocurrió un error al cargar los datos del maestro')
+        return redirect(url_for('index'))
 
+@app.route('/grupo/<string:grupo_id>')
+@login_required
+def grupo_detalle(grupo_id):
+    app.logger.info(f"Accediendo al grupo: {grupo_id}")
+    if current_user.rol.lower() != 'maestro':
+        flash('No tienes permiso para acceder a esta página')
+        return redirect(url_for('index'))
+    
+    try:
+        # Obtener detalles del grupo
+        grupo_data = ModelGrupo.get_grupo_detalle(grupo_id)
+        
+        # Obtener lista de alumnos del grupo
+        alumnos = ModelGrupo.get_alumnos_grupo(grupo_id)
+        
+        return render_template('auth/grupo_detalle.html', 
+                               grupo=grupo_data,
+                               alumnos=alumnos)
+    except Exception as e:
+        app.logger.error(f"Error al obtener datos del grupo: {str(e)}")
+        flash('Ocurrió un error al cargar los datos del grupo')
+        return redirect(url_for('maestro'))
 @app.route('/estudiante')
 @login_required
 def estudiante():

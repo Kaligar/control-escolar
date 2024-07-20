@@ -1,0 +1,121 @@
+{% extends './base.html' %}
+
+{% block title %}Detalles del Grupo{% endblock %}
+
+{% block customCSS %}
+<!-- Aquí puedes añadir cualquier CSS personalizado -->
+{% endblock %}
+
+{% block body %}
+<h2>Detalles del Grupo</h2>
+{% if grupo %}
+    <p>Grupo: {{ grupo.nombre_grupo }}</p>
+    <p>Carrera: {{ grupo.carrera }}</p>
+
+    <h3>calificacr el grupo:</h3>
+    {% if alumnos %}
+    <form action="" >
+    <ul><p>parcial 1</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Matrícula</th>
+                    <th>Nombre</th>
+                    <th>HACER</th>
+                    <th>SABER</th>
+                    <th>SER</th>
+                    <th>Calificación</th>
+                    <th>Faltas</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+        {% for alumno in alumnos %}
+        <tr>
+            <td>{{alumno.matricula}}</td>
+            <td>{{ alumno.nombre }} {{ alumno.apellido }} {{alumno.segundo_apellido}}</td>
+            <td><input class="input-box" type="text" value="0"></td>
+            <td><input class="input-box" type="text" value="0"></td>
+            <td><input class="input-box" type="text" value="0"></td>
+            <td>0</td>
+            <td><input class="input-box" type="text" value="0"></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+        </table>
+        </ul>
+        <input type="submit">
+    </form> 
+    <form action="" >
+        <ul><p>parcial 2</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Matrícula</th>
+                        <th>Nombre</th>
+                        <th>HACER</th>
+                        <th>SABER</th>
+                        <th>SER</th>
+                        <th>Calificación</th>
+                        <th>Faltas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+            {% for alumno in alumnos %}
+            <tr>
+                <td>{{alumno.matricula}}</td>
+                <td>{{ alumno.nombre }} {{ alumno.apellido }} {{alumno.segundo_apellido}}</td>
+                <td><input class="input-box" type="text" value="0"></td>
+                <td><input class="input-box" type="text" value="0"></td>
+                <td><input class="input-box" type="text" value="0"></td>
+                <td>0</td>
+                <td><input class="input-box" type="text" value="0"></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+            </table>
+            </ul>
+            <input type="submit">
+        </form> 
+        <form action="" >
+            <ul><p>parcial 3</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Matrícula</th>
+                            <th>Nombre</th>
+                            <th>HACER</th>
+                            <th>SABER</th>
+                            <th>SER</th>
+                            <th>Calificación</th>
+                            <th>Faltas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                {% for alumno in alumnos %}
+                <tr>
+                    <td>{{alumno.matricula}}</td>
+                    <td>{{ alumno.nombre }} {{ alumno.apellido }} {{alumno.segundo_apellido}}</td>
+                    <td><input class="input-box" type="text" value="0"></td>
+                    <td><input class="input-box" type="text" value="0"></td>
+                    <td><input class="input-box" type="text" value="0"></td>
+                    <td>0</td>
+                    <td><input class="input-box" type="text" value="0"></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+                </table>
+                </ul>
+                <input type="submit">
+            </form> 
+    {% else %}
+        <p>No hay alumnos en este grupo.</p>
+    {% endif %}
+{% else %}
+    <p>No se encontró información del grupo.</p>
+{% endif %}
+
+<a class="btn btn-secondary" href="{{ url_for('maestro') }}">Volver a la lista de grupos</a>
+{% endblock %}

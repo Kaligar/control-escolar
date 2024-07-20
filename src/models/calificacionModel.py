@@ -9,18 +9,19 @@ class CalificacionModel:
             calificaciones = []
             
             with connection.cursor() as cursor:
-                cursor.execute('''SELECT 
+                cursor.execute(
+                    '''SELECT 
                     C.id_calificacion, M.nombre AS materia, C.calificacion, C.tipo, M.clave AS clave, M.modulo AS modulo
                     FROM calificacion AS C
                     INNER JOIN materia AS M ON M.id_materia = C.id_materia
                     WHERE C.id_alumno = %s AND C.fase IN ('Parcial 1', 'Parcial 2', 'Parcial 3') AND C.cursado = 0
                     ORDER BY modulo
-                ''', (id_alumno,))
+                    ''',
+                    (id_alumno,))
                 resultset = cursor.fetchall()
 
                 for row in resultset:
                     calificacion_obj = {
-                        'id_calificacion': row[0],
                         'materia': row[1],
                         'calificacion': row[2],
                         'tipo': row[3],
