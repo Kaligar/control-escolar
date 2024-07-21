@@ -2,20 +2,21 @@
 
 {% block title %}Detalles del Grupo{% endblock %}
 
-{% block customCSS %}
-<!-- Aquí puedes añadir cualquier CSS personalizado -->
-{% endblock %}
-
 {% block body %}
 <h2>Detalles del Grupo</h2>
 {% if grupo %}
     <p>Grupo: {{ grupo.nombre_grupo }}</p>
     <p>Carrera: {{ grupo.carrera }}</p>
 
-    <h3>calificacr el grupo:</h3>
+    <h3>Calificar el grupo:</h3>
     {% if alumnos %}
-    <form action="" >
-    <ul><p>parcial 1</p>
+    <form action="{{ url_for('grupo_detalle', grupo_id=grupo.nombre_grupo) }}" method="post">
+        {{ csrf_token() }}
+        <select name="parcial" required>
+            <option value="Parcial 1">Parcial 1</option>
+            <option value="Parcial 2">Parcial 2</option>
+            <option value="Parcial 3">Parcial 3</option>
+        </select>
         <table>
             <thead>
                 <tr>
@@ -29,87 +30,24 @@
                 </tr>
             </thead>
             <tbody>
-                
-        {% for alumno in alumnos %}
-        <tr>
-            <td>{{alumno.matricula}}</td>
-            <td>{{ alumno.nombre }} {{ alumno.apellido }} {{alumno.segundo_apellido}}</td>
-            <td><input class="input-box" type="text" value="0"></td>
-            <td><input class="input-box" type="text" value="0"></td>
-            <td><input class="input-box" type="text" value="0"></td>
-            <td>0</td>
-            <td><input class="input-box" type="text" value="0"></td>
-        </tr>
-        {% endfor %}
-        </tbody>
-        </table>
-        </ul>
-        <input type="submit">
-    </form> 
-    <form action="" >
-        <ul><p>parcial 2</p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Matrícula</th>
-                        <th>Nombre</th>
-                        <th>HACER</th>
-                        <th>SABER</th>
-                        <th>SER</th>
-                        <th>Calificación</th>
-                        <th>Faltas</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    
-            {% for alumno in alumnos %}
-            <tr>
-                <td>{{alumno.matricula}}</td>
-                <td>{{ alumno.nombre }} {{ alumno.apellido }} {{alumno.segundo_apellido}}</td>
-                <td><input class="input-box" type="text" value="0"></td>
-                <td><input class="input-box" type="text" value="0"></td>
-                <td><input class="input-box" type="text" value="0"></td>
-                <td>0</td>
-                <td><input class="input-box" type="text" value="0"></td>
-            </tr>
-            {% endfor %}
-            </tbody>
-            </table>
-            </ul>
-            <input type="submit">
-        </form> 
-        <form action="" >
-            <ul><p>parcial 3</p>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Matrícula</th>
-                            <th>Nombre</th>
-                            <th>HACER</th>
-                            <th>SABER</th>
-                            <th>SER</th>
-                            <th>Calificación</th>
-                            <th>Faltas</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        
                 {% for alumno in alumnos %}
                 <tr>
                     <td>{{alumno.matricula}}</td>
                     <td>{{ alumno.nombre }} {{ alumno.apellido }} {{alumno.segundo_apellido}}</td>
-                    <td><input class="input-box" type="text" value="0"></td>
-                    <td><input class="input-box" type="text" value="0"></td>
-                    <td><input class="input-box" type="text" value="0"></td>
-                    <td>0</td>
-                    <td><input class="input-box" type="text" value="0"></td>
+                    <td><input class="input-box" type="number" step="0.1" min="0" max="100" maxlength="3" value="0" id="hacer_{{alumno.matricula}}" name="hacer_{{alumno.matricula}}" required></td>
+                    <td><input class="input-box" type="number" step="0.1" min="0" max="100" maxlength="3" value="0" id="saber_{{alumno.matricula}}" name="saber_{{alumno.matricula}}" required></td>
+                    <td><input class="input-box" type="number" step="0.1" min="0" max="100" maxlength="3" value="0" id="ser_{{alumno.matricula}}" name="ser_{{alumno.matricula}}" required></td>
+                    <td><label id="calificacion_{{alumno.matricula}}">0</label></td>
+                    <input type="hidden" name="id_alumno_{{ alumno.matricula }}" value="{{ alumno.id_alumno }}">
+                    <td><input type="number" class="input-box" min="0" value="0" id="faltas_{{alumno.matricula}}" name="faltas_{{alumno.matricula}}" required></td>
                 </tr>
                 {% endfor %}
-                </tbody>
-                </table>
-                </ul>
-                <input type="submit">
-            </form> 
+                <input type="hidden" name="id_materia" value="{{grupo.id_materia}}">
+                <label for="">{{grupo.id_materia}}</label>
+            </tbody>
+        </table>
+        <input type="submit" value="Guardar calificaciones">
+    </form>
     {% else %}
         <p>No hay alumnos en este grupo.</p>
     {% endif %}
@@ -118,4 +56,51 @@
 {% endif %}
 
 <a class="btn btn-secondary" href="{{ url_for('maestro') }}">Volver a la lista de grupos</a>
+{% endblock %}
+
+{% block customJS %}
+<script>
+function calcularCalificacion(row) {
+    const hacerInput = row.querySelector('input[id^="hacer_"]');
+    const saberInput = row.querySelector('input[id^="saber_"]');
+    const serInput = row.querySelector('input[id^="ser_"]');
+    
+    let hacer = parseFloat(hacerInput.value) || 0;
+    let saber = parseFloat(saberInput.value) || 0;
+    let ser = parseFloat(serInput.value) || 0;
+    
+    if (hacer > 100) {
+        hacer = 100;
+        hacerInput.value = 100;
+    }
+    if (saber > 100) {
+        saber = 100;
+        saberInput.value = 100;
+    }
+    if (ser > 100) {
+        ser = 100;
+        serInput.value = 100;
+    }
+
+    const calificacion = (hacer * 0.6 + saber * 0.3 + ser * 0.1).toFixed(2);
+    
+    const calificacionLabel = row.querySelector('label[id^="calificacion_"]');
+    if (calificacionLabel) {
+        calificacionLabel.textContent = calificacion;
+    }
+    
+    console.log(`Calificación actualizada: ${calificacion}`);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('input[type="number"][id^="hacer_"], input[type="number"][id^="saber_"], input[type="number"][id^="ser_"]');
+    
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            calcularCalificacion(this.closest('tr'));
+        });
+    });
+});
+
+</script>
 {% endblock %}
