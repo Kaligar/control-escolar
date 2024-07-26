@@ -144,30 +144,33 @@ class CalificacionModel:
                 if promedio > 75:
                     # Verificamos si ya existe una calificación final
                     cursor.execute('''
-                        SELECT id_calificacion
-                        FROM calificacion
-                        WHERE id_alumno = %s AND id_materia = %s AND fase = 'Final' AND tipo = 'ordinario'
-                    ''', (id_alumno, id_materia))
-                    existing_final = cursor.fetchone()
-                    
-                    if existing_final:
-                        # Si ya existe, actualizamos
+                    SELECT m.modulo
+                    FROM materia m
+                    WHERE m.id_materia = %s
+                ''', (id_materia,))
+                    modulo = cursor.fetchone()[0]
+
+                    cursor.execute('''
+                        SELECT COUNT(*) as total_materias, 
+                            SUM(CASE WHEN c.calificacion >= 75 THEN 1 ELSE 0 END) as materias_aprobadas
+                        FROM materia m
+                        JOIN calificacion c ON m.id_materia = c.id_materia
+                        WHERE m.modulo = %s AND c.id_alumno = %s AND c.fase = 'Final' AND c.tipo = 'ordinario'
+                    ''', (modulo, id_alumno))
+                    result = cursor.fetchone()
+                    total_materias, materias_aprobadas = result
+
+                    if total_materias == materias_aprobadas:
+                        # El alumno ha aprobado todas las materias del módulo
                         cursor.execute('''
-                            UPDATE calificacion
-                            SET calificacion = %s
-                            WHERE id_calificacion = %s
-                        ''', (promedio, existing_final[0]))
-                    else:
-                        # Si no existe, insertamos
-                        cursor.execute('''
-                            INSERT INTO calificacion (id_alumno, id_materia, calificacion, tipo, fase)
-                            VALUES (%s, %s, %s, 'ordinario', 'Final')
-                        ''', (id_alumno, id_materia, promedio))
-                    
-                    connection.commit()
-                    return True
-                else:
-                    return False
+                            UPDATE alumno
+                            SET modulo_completado = %s
+                            WHERE id_alumno = %s
+                        ''', (modulo, id_alumno))
+                        connection.commit()
+
+                connection.commit()
+                return True if promedio > 75 else False
 
         except Exception as ex:
             connection.rollback()

@@ -1,38 +1,45 @@
 from database.db import get_connection
 
 class ModelGrupo:
-        @classmethod
-        def get_grupo_maestro(cls, id_maestro):
-            try:
-                connection = get_connection()
-                grupos = []
+    @classmethod
+    def get_materias_maestro(cls, id_maestro):
+        try:
+            connection = get_connection()
+            materias = []
 
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        '''
-                        SELECT DISTINCT ON (g.nombre_grupo) g.nombre_grupo, g.id_grupo, c.nombre
-                        FROM grupos as g
-                        INNER JOIN carrera AS c ON c.id_carrera = g.id_carrera
-                        WHERE g.id_maestro = %s
-                        ORDER BY g.nombre_grupo, c.nombre;
-                        '''
-                        , (id_maestro,))
-                    resultset = cursor.fetchall()
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    '''
+                    SELECT DISTINCT 
+                        M.id_materia, 
+                        M.nombre AS nombre_materia, 
+                        c.nombre AS nombre_carrera,
+                        array_agg(DISTINCT g.nombre_grupo) AS grupos
+                    FROM materia AS M
+                    INNER JOIN grupos AS g ON M.id_materia = g.id_materia
+                    INNER JOIN carrera AS c ON c.id_carrera = g.id_carrera
+                    WHERE g.id_maestro = %s
+                    GROUP BY M.id_materia, M.nombre, c.nombre
+                    ORDER BY M.nombre;
+                    '''
+                    , (id_maestro,))
+                resultset = cursor.fetchall()
 
-                for row in resultset:
-                    grupos.append({
-                        'grupo': row[0],  # nombre_grupo
-                        'id_grupo': row[1],
-                        'carrera': row[2],
-                    })
+            for row in resultset:
+                materias.append({
+                    'id_materia': row[0],
+                    'nombre_materia': row[1],
+                    'nombre_carrera': row[2],
+                    'grupos': row[3]
+                })
 
-                connection.close()
-                return grupos
+            connection.close()
+            return materias
 
-            except Exception as ex:
-                raise Exception(ex)
-        @staticmethod
-        def get_grupo_detalle(grupo_id):
+        except Exception as ex:
+            raise Exception(ex)
+    @staticmethod
+    def get_grupo_detalle(grupo_id):
             try:
                 connection = get_connection()
                 with connection.cursor() as cursor:
@@ -58,8 +65,8 @@ class ModelGrupo:
             finally:
                 if connection:
                     connection.close()
-        @classmethod
-        def get_alumnos_grupo(cls, nombre_grupo):
+    @classmethod
+    def get_alumnos_grupo(cls, nombre_grupo):
             try:
                 connection = get_connection()
                 alumnos = []

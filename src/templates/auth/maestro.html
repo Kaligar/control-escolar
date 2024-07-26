@@ -7,18 +7,27 @@
 {% endblock %}
 
 {% block body %}
-<h2>Hola maestro, {{ current_user.username }} ({{ current_user.rol }})</h2>
-<p>Hola, {{ maestro.nombre }}</p>
+<h2>Bienvenido, Maestro {{ maestro.nombre }} {{ maestro.apellido }}</h2>
 
-<p>Grupos:</p>
-{% if grupo %}
-    {% for g in grupo %}
-    <a href="{{ url_for('grupo_detalle', grupo_id=g.grupo) }}">Grupo: {{ g.grupo }}</a>
-    <p>Carrera: {{ g.carrera }}</p>
+<h3>Tus Materias:</h3>
+{% if materias %}
+    {% for materia in materias %}
+    <div class="materia-block">
+        <h4>{{ materia.nombre_materia }}</h4>
+        <p>Carrera: {{ materia.nombre_carrera }}</p>
+        <p>Grupos:</p>
+        <ul>
+        {% for grupo in materia.grupos %}
+            <li><a href="{{ url_for('grupo_detalle', grupo_id=grupo) }}">{{ grupo }}</a><br>
+            <label for=""> materia: {{materia.nombre_materia}}</label></li>
+            
+        {% endfor %}
+        </ul>
+    </div>
     {% endfor %}
 {% else %}
-    <p>No se encontraron grupos</p>
+    <p>No se encontraron materias asignadas</p>
 {% endif %}
 
-<a class="btn btn-secondary" href="{{ url_for('logout') }}">Logout</a>
+<a class="btn btn-secondary" href="{{ url_for('logout') }}">Cerrar sesión</a>
 {% endblock %}

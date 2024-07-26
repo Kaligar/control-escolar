@@ -12,14 +12,19 @@ class AlumnoModel:
 
             with connection.cursor() as cursor:
                 cursor.execute(
-                    "SELECT id_alumno, nombre, apellido, segundo_apellido, fecha_nacimiento, direccion, telefono, matricula, generacion, estado, id_carrera, correo, genero FROM alumno")
+                    "SELECT id_alumno, nombre, apellido, segundo_apellido,matricula FROM alumno")
                 resultset = cursor.fetchall()
 
                 for row in resultset:
-                    alumno_obj = Alumno(
-                        row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11], row[12]
-                    )
-                    alumnos.append(alumno_obj.to_JSON())
+                    alumno_obj =  {
+                        'id_alumno': row[0],
+                        'nombre': row[1],
+                        'apellido': row[2],
+                        'segundo_apellido': row[3],
+                        'matricula': row[4]
+                    }
+                    
+                    alumnos.append(alumno_obj)
 
             connection.close()
             return alumnos
@@ -87,3 +92,34 @@ class AlumnoModel:
 
         except Exception as ex:
             raise Exception(ex)
+    @classmethod
+    def get_alumno_by_matricula(cls, matricula):
+        try:
+            connection = get_connection()
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT id_alumno, nombre, apellido, segundo_apellido, fecha_nacimiento, direccion, numero, correo,id_carrera, matricula,fecha_ingreso, generacion, estado, preparatoria_egreso,id_usuario FROM alumno WHERE matricula = %s", (matricula,))
+                resultset = cursor.fetchone()
+                if resultset:
+                    alumno={
+                    'id_alumno': resultset[0],
+                    'nombre': resultset[1],
+                    'apellido': resultset[2],
+                    'segundo_apellido': resultset[3],
+                    'fecha_nacimiento': resultset[4],# Convert date to string
+                    'direccion': resultset[5],
+                    'numero': resultset[6],
+                    'correo': resultset[7],
+                    'id_carrera': resultset[8],
+                    'matricula': resultset[9],
+                    'fecha_ingreso': resultset[10],
+                    'generacion': resultset[11],
+                    'estado': resultset[12],
+                    'preparatoria_egreso': resultset[13],
+                    'id_usuario': resultset[14]
+                    }
+                    
+                return alumno
+        except Exception as ex:
+            raise Exception(ex)
+        finally:
+            connection.close()

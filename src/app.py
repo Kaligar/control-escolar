@@ -11,6 +11,7 @@ from models.AlumnoModel import AlumnoModel
 from models.calificacionModel import CalificacionModel
 from models.maestroModel import MaestroModel
 from models.ModelGrupo import ModelGrupo
+from models.AdministradorModel import AdminModel
 
 app = Flask(__name__)
 app.config.from_object(config['development'])
@@ -84,19 +85,17 @@ def maestro():
         maestro_data = MaestroModel.get_maestro(id_maestro)
         logging.info(f"Datos del maestro: {maestro_data}")
         
-        grupo_data = ModelGrupo.get_grupo_maestro(id_maestro)
-        logging.info(f"Datos del grupo: {grupo_data}")
+        materias_data = ModelGrupo.get_materias_maestro(id_maestro)
+        logging.info(f"Datos de las materias: {materias_data}")
         
         return render_template('auth/maestro.html', 
                                maestro=maestro_data,
-                               grupo=grupo_data)
+                               materias=materias_data)
     
     except Exception as e:
         logging.error(f"Error inesperado en la ruta /maestro: {str(e)}", exc_info=True)
         flash('Ocurrió un error inesperado al cargar los datos del maestro')
         return redirect(url_for('index'))
-
-
 
 @app.route('/grupo/<string:grupo_id>', methods=['GET', 'POST'])
 @login_required
@@ -192,7 +191,60 @@ def estudiante():
         app.logger.error(f"Error al obtener datos del estudiante: {str(e)}")
         flash('Ocurrió un error al cargar los datos del estudiante')
         return redirect(url_for('index'))
+
+@app.route('/lista_alumno', methods=['GET', 'POST'])
+@login_required
+def lista_alumno    ():
+    if current_user.rol != 'administrativo':
+        flash('No tienes permiso para acceder a esta página')
+        return redirect(url_for('index'))
+
+
+    alumnos = AlumnoModel.get_alumnos()
+    return render_template('auth/lista-alumno.html', alumnos=alumnos)
+@app.route('/alumno/<string:matricula>')
+@login_required
+def alumno_detalle(matricula):
+    if current_user.rol != 'administrativo':
+        flash('No tienes permiso para acceder a esta página')
+        return redirect(url_for('index'))
     
+    alumno = AlumnoModel.get_alumno_by_matricula(matricula)
+    if alumno:
+        return render_template('auth/alumno_detalle.html', alumno=alumno)
+    else:
+        flash('Alumno no encontrado', 'error')
+        return redirect(url_for('lista_alumno'))
+@app.route('/agregar_alumno', methods=['GET', 'POST'])
+@login_required
+def agregar_alumno():
+    if current_user.rol != 'administrativo':
+        flash('No tienes permiso para acceder a esta página')
+        return redirect(url_for('index'))
+
+    
+    return render_template('auth/agregar-alumno.html')
+@app.route('/administrativo')
+@login_required
+def administrativo():
+    if current_user.rol.lower() != 'administrativo':
+        flash('No tienes permiso para acceder a esta página')
+        return redirect(url_for('index'))
+    
+    try:
+        id_administrativo = AdminModel.get_id_Admin_by_user_id(current_user.id)
+        print(id_administrativo)
+        if id_administrativo is None:
+            flash('No se encontró un alumno asociado a este usuario')
+            return redirect(url_for('index'))
+        
+        return render_template('auth/administrador-tier1.html')
+    except Exception as e:
+        print(id_administrativo)
+        app.logger.error(f"Error al obtener datos del administrador: {str(e)}")
+        flash('Ocurrió un error al cargar los datos del administrador')
+        return redirect(url_for('index'))
+        
 def status_401(error):
     return redirect(url_for('Login'))
 

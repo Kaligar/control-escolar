@@ -1,0 +1,60 @@
+{% extends './base.html' %}
+
+{% block title %}Perfil de Estudiante{% endblock %}
+
+{% block customCSS %}
+<style>
+    .form-container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+</style>
+{% endblock %}
+
+
+{% block body %}
+<div class="container form-container">
+    <h2 class="mb-4">Agregar Nuevo Alumno</h2>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-info">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('agregar_alumno') }}">
+        <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="nombre" name="nombre" required autocomplete="off">
+        </div>
+        <div class="mb-3">
+            <label for="apellido" class="form-label">Apellido</label>
+            <input type="text" class="form-control" id="apellido" name="apellido" required autocomplete="off">
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required autocomplete="off">
+        </div>
+        <div class="mb-3">
+            <label for="matricula" class="form-label">Matrícula</label>
+            <input type="text" class="form-control" id="matricula" name="matricula" required autocomplete="off">
+        </div>
+        <div class="mb-3">
+            <label for="carrera" class="form-label">Carrera</label>
+            <select class="form-select" id="carrera" name="carrera" required>
+                <option value="">Selecciona una carrera</option>
+                <!-- Aquí puedes agregar opciones dinámicamente desde tu base de datos -->
+                <option value="1">Ingeniería en Sistemas</option>
+                <option value="2">Licenciatura en Administración</option>
+                <!-- ... más opciones ... -->
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Agregar Alumno</button>
+    </form>
+
+    <a class="btn btn-secondary" href="{{ url_for('administrativo') }}"> volver</a>
+</div>
+{% endblock %}

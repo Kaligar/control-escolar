@@ -1,0 +1,16 @@
+{% extends './base.html' %}
+
+{% block title %}Detalle del Alumno{% endblock %}
+
+{% block body %}
+<h2>Detalle del Alumno</h2>
+{% if alumno %}
+    <p><strong>Matrícula:</strong> {{ alumno.matricula }}</p>
+    <p><strong>Nombre:</strong> {{ alumno.nombre }} {{ alumno.apellido }}</p>
+    <p><strong>Email:</strong> {{ alumno.correo }}</p>
+    <!-- Añade más detalles según sea necesario -->
+{% else %}
+    <p>No se encontró información del alumno.</p>
+{% endif %}
+<a href="{{ url_for('lista_alumno') }}" class="btn btn-secondary">Volver a la lista</a>
+{% endblock %}

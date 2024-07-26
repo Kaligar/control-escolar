@@ -1,0 +1,61 @@
+{% extends './base.html' %}
+
+{% block title %}Estudiante{% endblock %}
+
+{% block customCSS %}
+<style>
+    .student-info, .materias-en-curso, .calificaciones-anteriores {
+        margin-top: 30px;
+    }
+    .student-info p {
+        margin-bottom: 10px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<h2>Bienvenido, {{ current_user.username }}</h2>
+<p>Rol: {{ current_user.rol }}</p>
+<h3>Información del Estudiante</h3>
+{% if alumnos %}
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Matrícula</th>
+        <th>Grupo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for alumno in alumnos %}
+      <tr>
+        <td>{{ alumno.id_alumno }}</td>
+        <td>{{ alumno.nombre }} {{ alumno.apellido }} {{ alumno.segundo_apellido }}</td>
+        <td>{{ alumno.matricula }}</td>
+        <td><td><a href="{{ url_for('alumno_detalle', matricula=alumno.matricula) }}">Ver detalles</a></td></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+</table>
+
+
+{% else %}
+<p>No se encontraron datos del estudiante.</p>
+{% endif %}
+
+<a class="btn btn-secondary" href="{{ url_for('administrativo') }}"> volver</a>
+{% endblock %}
