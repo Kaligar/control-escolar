@@ -1,0 +1,22 @@
+{% extends './base.html' %}
+
+{% block title %}Página del Maestro{% endblock %}
+
+{% block customCSS %}
+<!-- Aquí puedes añadir cualquier CSS personalizado -->
+{% endblock %}
+
+{% block body %}
+
+<h3>Tus Materias:</h3>
+{% if grupos %}
+    {% for grupo in grupos %}
+    <div class="materia-block">
+        <a href="{{ url_for('modificar_grupo', id_grupo=grupo.id_grupo)}}"><h4>{{ grupo.nombre_grupo }}</h4></a>
+    </div>
+    {% endfor %}
+{% else %}
+    <p>No se encontraron materias asignadas</p>
+{% endif %}
+<a class="btn btn-secondary" href="{{ url_for('administrativo') }}">volver</a>
+{% endblock %}

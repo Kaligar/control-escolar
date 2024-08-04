@@ -12,9 +12,10 @@
     <p>Rol: {{ current_user.rol }}</p>
 
     <!-- Ejemplo de un enlace más descriptivo -->
-    <a href="{{ url_for('agregar_alumno') }}" class="btn btn-primary">Agregar Alumno</a>
-    <a href="{{ url_for('lista_alumno') }}" class="btn btn-primary">lista_alumno</a>
+    <a href="{{ url_for('agregar_alumno')}}" class="btn btn-primary">Agregar Alumno</a><br>
+    <a href="{{ url_for('lista_alumno') }}" class="btn btn-primary">lista_alumno</a><br>
+    <a href="{{ url_for('control_escolar_grupos') }}" class="btn btn-primary">lista grupos</a><br>
 
-    <a class="btn btn-secondary mt-3" href="{{ url_for('logout') }}">Cerrar sesión</a>
+    <a class="btn btn-secondary" href="{{ url_for('logout') }}">Cerrar sesión</a>
 </div>
 {% endblock %}

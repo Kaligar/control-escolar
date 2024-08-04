@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constancia USMP</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .header {
+            text-align: right;
+            margin-bottom: 40px;
+        }
+        .header img {
+            max-width: 300px;
+        }
+        .constancia-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 40px 0;
+        }
+        .constancia-number {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .content {
+            text-align: justify;
+        }
+        .signature {
+            margin-top: 60px;
+            text-align: center;
+        }
+        .signature img {
+            max-width: 200px;
+        }
+        .signature-name {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .footer {
+            margin-top: 60px;
+            font-size: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+{% if alumno %}
+    <div class="header">
+
+    </div>
+
+    <div class="constancia-title">CONSTANCIA</div>
+
+    <div class="constancia-number">contsaca X</div>
+
+    <div class="content">
+        <p>EL JEFE DE LA OFICINA DE REGISTROS ACADÉMICOS DE LA FACULTAD DE CIENCIAS DE LA COMUNICACIÓN, TURISMO Y PSICOLOGÍA DE LA UNIVERSIDAD DE SAN MARTÍN DE PORRES QUE SUSCRIBE, HACE CONSTAR:</p>
+
+        <p>QUE, {{ alumno.nombre }} {{alumno.apellido}} {{alumno.segundo_apellido}} CON NÚMERO DE MATRÍCULA {{alumno.matricula}} DE LA ESCUELA PROFESIONAL DE TURISMO Y HOTELERÍA, SE ENCUENTRA MATRICULADA EN EL SEMESTRE ACADÉMICO 2019-II, SIENDO SU CICLO DE REFERENCIA VIII CICLO.</p>
+
+        <p>SE EXPIDE LA PRESENTE A SOLICITUD DE LA INTERESADA PARA LOS FINES QUE ESTIME CONVENIENTE; A LOS QUINCE DÍAS DEL MES DE AGOSTO DEL AÑO DOS MIL DIECINUEVE EN EL DISTRITO DE SURQUILLO, CIUDAD DE LIMA.</p>
+    </div>
+
+    <div class="signature">
+
+        <div class="signature-name">Paulina Benavides Godoy</div>
+        <div>JEFA DE LA OFICINA DE REGISTROS ACADÉMICOS</div>
+        <p>_____________________________________</p>
+    </div>
+
+    <div class="footer">
+        <p>Facultad de C. Comunicación, Turismo y Psicología</p>
+        <p>Av. Tomás Marsano N° 151 - 155 - 242 - 248, Surquillo</p>
+        <p>Telf: 513-6300</p>
+        <p>sacad@usmp.pe</p>
+        <p>www.fcctp.usmp.edu.pe</p>
+    </div>
+{%else%}
+<p>no hay nada</p>
+{%endif%}
+</body>
+</html>

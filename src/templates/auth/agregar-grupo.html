@@ -1,0 +1,59 @@
+{% extends './base.html' %}
+
+{% block title %}Perfil de Estudiante{% endblock %}
+
+{% block customCSS %}
+<style>
+    .form-container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container form-container">
+    <h2 class="mb-4">Agregar Nuevo Grupo</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('agregar_grupo') }}" id="agregar_grupo" name="agregar_grupo">
+        
+        <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre del Grupo</label>
+            <input type="text" class="form-control" id="nombre" name="nombre" required autocomplete="off">
+        </div>
+
+        <div class="mb-3">
+            <label for="descripcion" class="form-label">Descripción</label>
+            <textarea class="form-control" id="descripcion" name="descripcion" rows="3" required></textarea>
+        </div>
+        
+        <div class="mb-3">
+            <label for="carrera" class="form-label">Carrera</label>
+            <select class="form-select" id="carrera" name="carrera" required>
+                <option value="">Selecciona la carrera</option>
+                {% if carreras %}
+                    {% for carrera in carreras %}
+                        <option value="{{ carrera.id_carrera }}">{{ carrera.nombre }}</option>
+                    {% endfor %}
+                {% else %}
+                    <option disabled>No se encuentran carreras</option>
+                {% endif %}
+            </select>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Agregar Grupo</button>
+    </form>
+
+    <a class="btn btn-secondary mt-3" href="{{ url_for('administrativo') }}">Volver</a>
+</div>
+
+{% endblock %}

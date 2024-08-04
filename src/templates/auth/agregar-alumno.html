@@ -12,7 +12,6 @@
 </style>
 {% endblock %}
 
-
 {% block body %}
 <div class="container form-container">
     <h2 class="mb-4">Agregar Nuevo Alumno</h2>
@@ -25,7 +24,7 @@
         {% endif %}
     {% endwith %}
 
-    <form method="POST" action="{{ url_for('agregar_alumno') }}">
+    <form method="POST" action="{{ url_for('agregar_alumno') }}" id="agregar_alumno" name="agregar_alumno">
         <div class="mb-3">
             <label for="nombre" class="form-label">Nombre</label>
             <input type="text" class="form-control" id="nombre" name="nombre" required autocomplete="off">
@@ -35,26 +34,67 @@
             <input type="text" class="form-control" id="apellido" name="apellido" required autocomplete="off">
         </div>
         <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="email" name="email" required autocomplete="off">
+            <label for="segundo_apellido" class="form-label">Segundo Apellido</label>
+            <input type="text" class="form-control" id="segundo_apellido" name="segundo_apellido" required autocomplete="off">
         </div>
         <div class="mb-3">
-            <label for="matricula" class="form-label">Matrícula</label>
-            <input type="text" class="form-control" id="matricula" name="matricula" required autocomplete="off">
+            <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+            <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" required autocomplete="off">
+        </div>
+        <div class="mb-3">
+            <label for="direccion" class="form-label">Dirección</label>
+            <input type="text" class="form-control" id="direccion" name="direccion" required autocomplete="off">
+        </div>
+        <div class="mb-3">
+            <label for="numero" class="form-label">Número</label>
+            <input type="number" class="form-control" id="numero" name="numero" required autocomplete="off">
+        </div>
+        <div class="mb-3">
+            <label for="correo" class="form-label">Correo</label>
+            <input type="email" class="form-control" id="correo" name="correo" required autocomplete="off">
         </div>
         <div class="mb-3">
             <label for="carrera" class="form-label">Carrera</label>
             <select class="form-select" id="carrera" name="carrera" required>
-                <option value="">Selecciona una carrera</option>
-                <!-- Aquí puedes agregar opciones dinámicamente desde tu base de datos -->
-                <option value="1">Ingeniería en Sistemas</option>
-                <option value="2">Licenciatura en Administración</option>
-                <!-- ... más opciones ... -->
+                <option value="">Selecciona la carrera</option>
+                {% if carreras %}
+                    {% for carrera in carreras %}
+                        <option value="{{ carrera.id_carrera }}">{{ carrera.nombre }}</option>
+                    {% endfor %}
+                {% else %}
+                    No se encuentran carreras
+                {% endif %}
             </select>
+        </div>
+        <div class="mb-3">
+            <label for="matricula" class="form-label">Matrícula</label>
+            <input type="number" class="form-control" id="matricula" name="matricula" required autocomplete="off">
+        </div>
+        <div class="mb-3">
+            <label for="fecha_ingreso" class="form-label">Fecha de Ingreso</label>
+            <input type="date" class="form-control" id="fecha_ingreso" name="fecha_ingreso" required autocomplete="off">
+        </div>
+        <div class="mb-3">
+            <label for="generacion" class="form-label">Generación</label>
+            <input type="text" class="form-control" id="generacion" name="generacion" required autocomplete="off">
+        </div>
+        <div class="mb-3">
+            <label for="estado" class="form-label">Estado</label>
+            <select name="estado" id="estado">
+                <option value="activo">activo</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="preparatoria_egreso" class="form-label">Preparatoria de Egreso</label>
+            <input type="text" class="form-control" id="preparatoria_egreso" name="preparatoria_egreso" required autocomplete="off">
+        </div>
+        <div class="mb-3">
+            <label for="cuatrimestre" class="form-label">Cuatrimestre</label>
+            <input type="number" class="form-control" id="cuatrimestre" name="cuatrimestre" required autocomplete="off" value="0">
         </div>
         <button type="submit" class="btn btn-primary">Agregar Alumno</button>
     </form>
 
-    <a class="btn btn-secondary" href="{{ url_for('administrativo') }}"> volver</a>
+    <a class="btn btn-secondary" href="{{ url_for('administrativo') }}">Volver</a>
 </div>
 {% endblock %}

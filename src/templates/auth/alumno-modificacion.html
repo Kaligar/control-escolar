@@ -1,0 +1,101 @@
+{% extends './base.html' %}
+
+{% block title %}Perfil de Estudiante{% endblock %}
+
+{% block customCSS %}
+<style>
+    .form-container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+</style>
+{% endblock %}
+
+
+{% block body %}
+<div class="container form-container">
+    <h2 class="mb-4">Agregar Nuevo Alumno</h2>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-info">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+id_alumno,nombre,apellido,segundo_apellido,fecha_nacimiento,direccion,numero,correo,id_carrera,id_matricula,matricula,fecha_ingreso,generacion,estado,preparatoria_egreso,id_usuario,cuatrimestre
+    <form method="POST" action="" method="POST">
+        <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="nombre" name="nombre" required autocomplete="off" value="{{ alumno.nombre }}">
+        </div>
+        <div class="mb-3">
+            <label for="apellido" class="form-label">Apellido</label>
+            <input type="text" class="form-control" id="apellido" name="apellido" required autocomplete="off" value="{{ alumno.apellido }}">
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">segundo_apellido</label>
+            <input type="email" class="form-control" id="segundo_apellido" name="segundo_apellido" required autocomplete="off" value="{{ alumno.segundo_apellido }}">
+        </div>
+        <div class="mb-3">
+            <label for="matricula" class="form-label">fecha_nacimiento</label>
+            <input type="date" class="form-control" id="matricula" name="matricula" required autocomplete="off" value="{{ alumno.fecha_nacimiento }}">
+        </div>
+
+        <div class="mb-3">
+            <label for="matricula" class="form-label">direccion</label>
+            <input type="text" class="form-control" id="direccion" name="direccion" required autocomplete="off" value="{{ alumno.direccion }}">
+        </div>
+        <div class="mb-3">
+            <label for="matricula" class="form-label">numero</label>
+            <input type="number" class="form-control" id="numero" name="numero" required autocomplete="off"value="{{ alumno.numero }}">
+        </div>
+        <div class="mb-3">
+            <label for="matricula" class="form-label">correo</label>
+            <input type="email" class="form-control" id="correo" name="correo" required autocomplete="off"value="{{ alumno.correo }}">
+        </div>
+        <div class="mb-3">
+            <label for="carrera" class="form-label">Carrera</label>
+
+            <select class="form-select" id="carrera" name="carrera" required>
+                <option value="">{{ alumno.id_carrera }}</option>
+                {%if carreras%}
+                {% for carrera in carreras %}
+                <option value="{{ carrera.id_carrera }}">{{ carrera.nombre }}</option>
+                {% endfor %}
+                {%else%}
+                no se ecnuentran correras
+                {%endif%}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="matricula" class="form-label">matricula</label>
+            <input type="number" class="form-control" id="matricula" name="matricula" required autocomplete="off" value="{{ alumno.matricula }}">
+        </div>
+        <div class="mb-3">
+            <label for="matricula" class="form-label">fecha_ingreso</label>
+            <input type="date" class="form-control" id="fecha_ingreso" name="fecha_ingreso" required autocomplete="off" value="{{ alumno.fecha_ingreso }}">
+        </div>
+        <div class="mb-3">
+            <label for="matricula" class="form-label">generacion</label>
+            <input type="text" class="form-control" id="generacion" name="generacion" required autocomplete="off" value="{{ alumno.generacion }}">
+        </div>
+        <div class="mb-3">
+            <label for="matricula" class="form-label">estado</label>
+            <input type="text" class="form-control" id="matricula" name="matricula" required autocomplete="off" value="{{ alumno.estado }}">
+        </div>
+        <div class="mb-3">
+            <label for="matricula" class="form-label">preparatoria_egreso</label>
+            <input type="text" class="form-control" id="preparatoria_egreso" name="preparatoria_egreso" required autocomplete="off" value="{{ alumno.preparatoria_egreso }}">
+        </div>
+        <div class="mb-3">
+            <label for="matricula" class="form-label">cuatrimestre</label>
+            <input type="number" class="form-control" id="cuatrimestre" name="cuatrimestre" required autocomplete="off" value="0" value="{{ alumno.cuatrimestre }}">
+        </div>
+        <button type="submit" class="btn btn-primary">Agregar Alumno</button>
+    </form>
+
+    <a class="btn btn-secondary" href="{{ url_for('administrativo') }}"> volver</a>
+</div>
+{% endblock %}

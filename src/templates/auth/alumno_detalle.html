@@ -13,4 +13,6 @@
     <p>No se encontró información del alumno.</p>
 {% endif %}
 <a href="{{ url_for('lista_alumno') }}" class="btn btn-secondary">Volver a la lista</a>
+<a href="{{ url_for('alumno_pdf', matricula=alumno.matricula) }}" class="btn btn-primary">Descargar PDF</a>
+<a href="{{ url_for('modificar_alumno', matricula=alumno.matricula)}}" class="btn btn-primary">modificar</a>
 {% endblock %}

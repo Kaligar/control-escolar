@@ -1,0 +1,62 @@
+{% extends './base.html' %}
+
+{% block title %}Detalles del Grupo{% endblock %}
+
+{% block body %}
+<h2>Detalles del Grupo</h2>
+{% if alumnos %}
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre </th>
+                    <th>Apellido</th>
+                    <th>Segundo Apellido</th>
+                    <th>Matrícula</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alumno in alumnos %}
+                <tr>
+                    <td>{{ alumno.nombre }}</td>
+                    <td>{{ alumno.apellido }}</td>
+                    <td>{{ alumno.segundo_apellido }}</td>
+                    <td>{{ alumno.matricula }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <p>No hay grupos disponibles.</p>
+{% endif %}
+
+
+<a href="{{ url_for('ver_detalles_grupo', nombre_grupo=nombre_grupo, id_grupo=id_grupo)}}" class="btn">Modificar Grupo</a>
+<a class="btn btn-secondary" href="{{ url_for('administrativo') }}">Volver a la lista de grupos</a>
+{% endblock %}
+
+{% block customCSS %}
+<style>
+    .table-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    table {
+        border-collapse: collapse;
+        width: 80%;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+</style>
+{% endblock %}
+
+{% block customJS %}
+{% endblock %}

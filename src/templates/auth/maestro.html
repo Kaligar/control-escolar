@@ -17,11 +17,16 @@
         <p>Carrera: {{ materia.nombre_carrera }}</p>
         <p>Grupos:</p>
         <ul>
-        {% for grupo in materia.grupos %}
-            <li><a href="{{ url_for('grupo_detalle', grupo_id=grupo) }}">{{ grupo }}</a><br>
-            <label for=""> materia: {{materia.nombre_materia}}</label></li>
-            
-        {% endfor %}
+            {{materia.id_grupo}}
+        {% if materia.nombre_grupo %}
+            <li>
+                <a href="{{ url_for('grupo_detalle', id_grupo=materia.id_grupo[0]) }}">{{ materia.nombre_grupo }}</a>
+                <br>
+                <label>Materia: {{ materia.nombre_materia }}</label>
+            </li>
+        {% else %}
+            <li>No hay grupos asignados para esta materia.</li>
+        {% endif %}
         </ul>
     </div>
     {% endfor %}

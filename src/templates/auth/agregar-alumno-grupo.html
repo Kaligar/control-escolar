@@ -1,0 +1,47 @@
+{% extends './base.html' %}
+
+{% block title %}Agregar Alumno a Grupo {{ nombre_grupo }}{% endblock %}
+
+{% block body %}
+<h2>Agregar Alumno a Grupo {{ nombre_grupo }}</h2>
+
+<form action="{{ url_for('agregar_alumno_grupo', nombre_grupo=nombre_grupo, id_grupo=id_grupo) }}" method="get" class="mb-3">
+    <div class="input-group">
+        <input type="text" class="form-control" name="search" placeholder="Buscar por nombre, apellido o matrícula" value="{{ search_term }}">
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="submit">Buscar</button>
+        </div>
+    </div>
+</form>
+
+{% if alumnos %}
+<form action="{{ url_for('agregar_alumno_grupo', nombre_grupo=nombre_grupo, id_grupo=id_grupo) }}" method="post">
+    <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Matrícula</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for alumno in alumnos %}
+          <tr>
+            <td>{{ alumno.id_alumno }}</td>
+            <td>{{ alumno.nombre }} {{ alumno.apellido }} {{ alumno.segundo_apellido }}</td>
+            <td>{{ alumno.matricula }}</td>
+            <td>
+                <button type="submit" name="alumno_id" value="{{ alumno.id_alumno }}" class="btn btn-primary btn-sm">Agregar</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+    </table>
+</form>
+{% else %}
+<p>No se encontraron alumnos.</p>
+{% endif %}
+
+<a class="btn btn-secondary" href="{{ url_for('grupo_detalle_admin', nombre_grupo=nombre_grupo, id_grupo=id_grupo) }}">Volver</a>
+{% endblock %}

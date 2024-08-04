@@ -1,9 +1,12 @@
 import logging
-from flask import Flask, render_template, request, redirect, url_for, flash
+from functools import wraps
+from io import BytesIO
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_wtf.csrf import CSRFProtect
 from config import config
 from database.db import get_connection
+import pdfkit
 from routes import Alumno
 from models.entities.user import User
 from models.modelUser import ModelUser
@@ -25,6 +28,17 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
 logging.basicConfig(level=logging.INFO)
+
+def role_required(allowed_roles):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if current_user.rol.lower() not in [role.lower() for role in allowed_roles]:
+                flash('No tienes permiso para acceder a esta página')
+                return redirect(url_for('index'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
 
 @login_manager.user_loader
 def load_user(id_usuario):
@@ -69,11 +83,8 @@ def logout():
 
 @app.route('/maestro')
 @login_required
+@role_required(['maestro'])
 def maestro():
-    if current_user.rol.lower() != 'maestro':
-        flash('No tienes permiso para acceder a esta página')
-        return redirect(url_for('index'))
-    
     try:
         id_maestro = MaestroModel.get_id_maestro_by_user_id(current_user.id)
         logging.info(f"ID de maestro obtenido: {id_maestro}")
@@ -83,10 +94,7 @@ def maestro():
             return redirect(url_for('index'))
         
         maestro_data = MaestroModel.get_maestro(id_maestro)
-        logging.info(f"Datos del maestro: {maestro_data}")
-        
         materias_data = ModelGrupo.get_materias_maestro(id_maestro)
-        logging.info(f"Datos de las materias: {materias_data}")
         
         return render_template('auth/maestro.html', 
                                maestro=maestro_data,
@@ -97,24 +105,22 @@ def maestro():
         flash('Ocurrió un error inesperado al cargar los datos del maestro')
         return redirect(url_for('index'))
 
-@app.route('/grupo/<string:grupo_id>', methods=['GET', 'POST'])
+@app.route('/grupo/<int:id_grupo>', methods=['GET', 'POST'])
 @login_required
-def grupo_detalle(grupo_id):
-    if current_user.rol.lower() != 'maestro':
-        flash('No tienes permiso para acceder a esta página')
-        return redirect(url_for('index'))
-    
+@role_required(['maestro'])
+def grupo_detalle(id_grupo):
     try:
+        
         if request.method == 'POST':
             parcial = request.form.get('parcial')
             id_materia = request.form.get('id_materia')
             
-            app.logger.info(f"Recibido POST para grupo {grupo_id}, parcial {parcial}, id_materia {id_materia}")
+            app.logger.info(f"Recibido POST para grupo {id_grupo}, parcial {parcial}, id_materia {id_materia}")
             
             if not id_materia:
                 app.logger.error("id_materia está vacío")
                 flash('Error: No se pudo obtener el ID de la materia', 'error')
-                return redirect(url_for('grupo_detalle', grupo_id=grupo_id))
+                return redirect(url_for('grupo_detalle', id_grupo=id_grupo))
             
             for key, value in request.form.items():
                 if key.startswith(('hacer_', 'saber_', 'ser_')):
@@ -156,23 +162,43 @@ def grupo_detalle(grupo_id):
                             print(f"Ocurrió un error: {str(e)}")
             
             flash('Calificaciones guardadas exitosamente', 'success')
-            return redirect(url_for('grupo_detalle', grupo_id=grupo_id))
+            return redirect(url_for('grupo_detalle', id_grupo=id_grupo))
         else:
-            grupo_data = ModelGrupo.get_grupo_detalle(grupo_id)
-            alumnos = ModelGrupo.get_alumnos_grupo(grupo_id)
+
+            grupo_data = ModelGrupo.get_grupo_detalle(id_grupo)
+            alumnos = ModelGrupo.get_alumnos_grupo(id_grupo)
             return render_template('auth/grupo_detalle.html', grupo=grupo_data, alumnos=alumnos)
     except Exception as e:
         app.logger.error(f"Error al procesar datos del grupo: {str(e)}", exc_info=True)
         flash('Ocurrió un error al procesar los datos del grupo', 'error')
         return redirect(url_for('maestro'))
 
+@app.route('/control-escolar/grupos/<string:nombre_grupo>/<int:id_grupo>')
+@login_required
+@role_required(['administrativo'])
+def grupo_detalle_admin(nombre_grupo, id_grupo):
+    try:
+        alumnos = ModelGrupo.get_alumnos_grupo(id_grupo)  # Asumiendo que este método existe y usa id_grupo
+        return render_template('auth/grupo-detalle-admin.html', alumnos=alumnos,nombre_grupo=nombre_grupo, id_grupo=id_grupo)
+    except Exception as ex:
+        logging.error(f"error en grupo_detalle_admin: {str(ex)}")
+        return redirect(url_for('administrativo'))
+    
+@app.route('/control-escolar/grupos')
+@login_required
+@role_required(['administrativo'])
+def control_escolar_grupos():
+    try:
+        grupos = ModelGrupo.get_grupos()
+        return render_template('auth/lista-grupos.html', grupos=grupos)
+    except Exception as ex:
+        logging.error(f"Error en control_escolar_grupos: {str(ex)}")
+        return redirect(url_for('administrativo'))
+
 @app.route('/estudiante')
 @login_required
+@role_required(['estudiante'])
 def estudiante():
-    if current_user.rol.lower() != 'estudiante':
-        flash('No tienes permiso para acceder a esta página')
-        return redirect(url_for('index'))
-    
     try:
         id_alumno = AlumnoModel.get_id_alumno_by_user_id(current_user.id)
         if id_alumno is None:
@@ -194,48 +220,54 @@ def estudiante():
 
 @app.route('/lista_alumno', methods=['GET', 'POST'])
 @login_required
-def lista_alumno    ():
-    if current_user.rol != 'administrativo':
-        flash('No tienes permiso para acceder a esta página')
-        return redirect(url_for('index'))
+@role_required(['administrativo'])
+def lista_alumno():
+    search_term = request.args.get('search', '')
+    
+    if search_term:
+        alumnos = AlumnoModel.buscar_alumnos(search_term)
+    else:
+        alumnos = AlumnoModel.get_alumnos()
+    
+    return render_template('auth/lista-alumno.html', alumnos=alumnos, search_term=search_term)
 
-
-    alumnos = AlumnoModel.get_alumnos()
-    return render_template('auth/lista-alumno.html', alumnos=alumnos)
 @app.route('/alumno/<string:matricula>')
 @login_required
+@role_required(['administrativo'])
 def alumno_detalle(matricula):
-    if current_user.rol != 'administrativo':
-        flash('No tienes permiso para acceder a esta página')
-        return redirect(url_for('index'))
-    
     alumno = AlumnoModel.get_alumno_by_matricula(matricula)
     if alumno:
         return render_template('auth/alumno_detalle.html', alumno=alumno)
     else:
         flash('Alumno no encontrado', 'error')
         return redirect(url_for('lista_alumno'))
-@app.route('/agregar_alumno', methods=['GET', 'POST'])
-@login_required
-def agregar_alumno():
-    if current_user.rol != 'administrativo':
-        flash('No tienes permiso para acceder a esta página')
-        return redirect(url_for('index'))
 
+@app.route('/alumno/<string:matricula>/pdf')
+@login_required
+@role_required(['administrativo'])
+def alumno_pdf(matricula):
+    alumno = AlumnoModel.get_alumno_by_matricula(matricula)
+    if not alumno:
+        flash('No se encontró información del alumno.')
+        return redirect(url_for('lista_alumno'))
     
-    return render_template('auth/agregar-alumno.html')
+    html = render_template('auth/alumno_pdf.html', alumno=alumno)
+    pdf = pdfkit.from_string(html, False)
+
+    return send_file(
+        BytesIO(pdf),
+        mimetype='application/pdf',
+        download_name=f"alumno_{alumno['matricula']}.pdf",
+        as_attachment=True
+    )
 @app.route('/administrativo')
 @login_required
+@role_required(['administrativo'])
 def administrativo():
-    if current_user.rol.lower() != 'administrativo':
-        flash('No tienes permiso para acceder a esta página')
-        return redirect(url_for('index'))
-    
     try:
         id_administrativo = AdminModel.get_id_Admin_by_user_id(current_user.id)
-        print(id_administrativo)
         if id_administrativo is None:
-            flash('No se encontró un alumno asociado a este usuario')
+            flash('No se encontró un adm asociado a este usuario')
             return redirect(url_for('index'))
         
         return render_template('auth/administrador-tier1.html')
@@ -244,7 +276,174 @@ def administrativo():
         app.logger.error(f"Error al obtener datos del administrador: {str(e)}")
         flash('Ocurrió un error al cargar los datos del administrador')
         return redirect(url_for('index'))
+
+@app.route('/control-escolar/alumno/<string:matricula>/modificar')
+@login_required
+@role_required(['administrativo'])
+def modificar_alumno(matricula):
+    try:
+        if matricula:
+            alumno = AlumnoModel.get_alumno_by_matricula(matricula)
+            carrera = AdminModel.get_carreras()   
+            return render_template('auth/alumno-modificacion.html', alumno=alumno, carreras=carrera)
+    except Exception as ex:
+        logging.error(f"Error en modificar_alumno: {str(ex)}")
+
+@app.route('/control-escolar/agregar-alumno', methods=['GET', 'POST'])
+@login_required
+@role_required(['administrativo'])
+def agregar_alumno():
+    try:
+        if request.method == 'POST':
+            # Crear un diccionario con los datos del formulario
+            nuevo_alumno = {
+                'nombre': request.form['nombre'],
+                'apellido': request.form['apellido'],
+                'segundo_apellido': request.form['segundo_apellido'],
+                'fecha_nacimiento': request.form['fecha_nacimiento'],
+                'direccion': request.form['direccion'],
+                'numero': request.form['numero'],
+                'correo': request.form['correo'],
+                'id_carrera': request.form['carrera'],
+                'matricula': request.form['matricula'],
+                'fecha_ingreso': request.form['fecha_ingreso'],
+                'generacion': request.form['generacion'],
+                'estado': request.form['estado'],
+                'preparatoria_egreso': request.form['preparatoria_egreso'],
+                'cuatrimestre': request.form['cuatrimestre']
+            }
+            
+            # Agregar el nuevo alumno a la base de datos
+            resultado = AlumnoModel.add_alumno(nuevo_alumno)
+            
+            if resultado:
+                flash('Alumno agregado exitosamente', 'success')
+            else:
+                flash('Error al agregar alumno', 'error')
+            
+            return redirect(url_for('administrativo'))
+        else:
+            carreras = AdminModel.get_carreras()
+            return render_template('auth/agregar-alumno.html', carreras=carreras)
+    except Exception as ex:
+        logging.error(f"Error al agregar alumno: {str(ex)}")
+        flash('Ocurrió un error al agregar el alumno', 'error')
+        return redirect(url_for('agregar_alumno'))
+    
+@app.route('/control-escolar/grupos/<string:nombre_grupo>/<int:id_grupo>/modificar')
+@login_required
+@role_required(['administrativo'])
+def ver_detalles_grupo(nombre_grupo, id_grupo):
+    try:
+        alumnos = ModelGrupo.get_alumnos_grupo(id_grupo)
+        return render_template('auth/modificar-grupo-admin.html', alumnos=alumnos, nombre_grupo=nombre_grupo, id_grupo=id_grupo)
+    except Exception as ex:
+        logging.error(f"Error en ver_detalles_grupo: {str(ex)}")
+        return "Error al obtener detalles del grupo", 500
+    
+@app.route('/control-escolar/grupos/<string:nombre_grupo>/<int:id_grupo>/modificar/agregar-alumno', methods=['GET', 'POST'])
+@login_required
+@role_required(['administrativo'])
+def agregar_alumno_grupo(nombre_grupo, id_grupo):
+    search_term = request.args.get('search', '')
+    try:
+        alumnos = ModelGrupo.get_alumnos_not_in_group(id_grupo, search_term)
         
+        if request.method == 'POST':
+            alumno_id = request.form.get('alumno_id')
+            if alumno_id:
+                agregado = ModelGrupo.agregar_alumno(id_grupo, alumno_id)
+                if agregado:
+                    flash('Alumno agregado al grupo exitosamente', 'success')
+                    return redirect(url_for('agregar_alumno_grupo', nombre_grupo=nombre_grupo, id_grupo=id_grupo))
+                
+        return render_template('auth/agregar-alumno-grupo.html', alumnos=alumnos, search_term=search_term, nombre_grupo=nombre_grupo, id_grupo=id_grupo)
+    except Exception as ex:
+        logging.error(f"Error en agregar_alumno_grupo: {str(ex)}")
+        return "Error al buscar alumnos", 500
+@app.route('/control-escolar/grupos/agregar-grupo', methods=['GET', 'POST'])
+@login_required
+@role_required(['administrativo'])
+def agregar_grupo():
+    try:
+        if request.method == 'POST':
+            # Debug logging
+            logging.debug(f"Form data received: {request.form}")
+            
+            nuevo_grupo = {
+                'nombre': request.form.get('nombre'),
+                'descripcion': request.form.get('descripcion'),
+                'id_carrera': request.form.get('carrera')
+            }
+            
+            # More debug logging
+            logging.debug(f"Nuevo grupo data: {nuevo_grupo}")
+            
+            if not all(nuevo_grupo.values()):
+                flash('Todos los campos son obligatorios', 'error')
+                return redirect(url_for('agregar_grupo'))
+
+            resultado = ModelGrupo.agregar_grupo(nuevo_grupo)
+            if resultado:
+                flash('Grupo agregado exitosamente', 'success')
+            else:
+                flash('Error al agregar grupo', 'error')
+            
+            return redirect(url_for('administrativo'))
+        else:
+            carreras = AdminModel.get_carreras()
+            return render_template('auth/agregar-grupo.html', carreras=carreras)
+    except Exception as ex:
+        logging.error(f"Error en agregar_grupo: {str(ex)}")
+        flash('Ocurrió un error al procesar la solicitud', 'error')
+        return redirect(url_for('administrativo'))
+    
+@app.route('/control-escolar/grupos/modificar')
+@login_required
+@role_required(['administrativo'])
+def lista_modificar_grupos():
+    try:
+        grupos = ModelGrupo.get_grupos()
+        
+        return render_template('auth/lista-modifica-grupos.html', grupos=grupos)
+    except Exception as ex:
+        logging.error(f"Error en lista_modificar_grupos: {str(ex)}")
+@app.route('/control-escolar/grupos/modificar/<int:id_grupo>', methods=['POST','GET'])
+@login_required
+@role_required(['administrativo'])
+def modificar_grupo(id_grupo):
+    try:
+        if request.method == 'POST':
+            grupo = ModelGrupo.get_grupo(id_grupo)  # Assume this method exists and retrieves the group data
+            carreras = AdminModel.get_carreras()
+            return render_template('auth/modificar-grupo.html', grupo=grupo, carreras=carreras)
+        else:
+                grupo = ModelGrupo.get_grupo(id_grupo)  # Assume this method exists and retrieves the group data
+                carreras = AdminModel.get_carreras()
+                return render_template('auth/modificar-grupo.html', grupo=grupo, carreras=carreras)
+    except Exception as ex:
+        logging.error(f"Error en modificar_grupo: {str(ex)}")
+@app.route('/control-escolar/grupos/<string:nombre_grupo>/<int:id_grupo>/modificar/eliminado/<int:id_alumno>', methods=['GET', 'POST'])
+@login_required
+@role_required(['administrativo'])
+def eliminar_alumno_grupo(nombre_grupo,id_alumno, id_grupo):
+    try:
+
+
+                eliminado = ModelGrupo.eliminar_alumno(id_grupo, id_alumno)
+                if eliminado:
+                    flash('Alumno agregado al grupo exitosamente', 'success')
+                    return redirect(url_for('ver_detalles_grupo', nombre_grupo=nombre_grupo, id_grupo=id_grupo))
+                else:
+                    print('nigga')
+                
+                
+    except Exception as ex:
+        logging.error(f"Error en agregar_alumno_grupo: {str(ex)}")
+        return "Error al buscar alumnos", 500
+
+
+
 def status_401(error):
     return redirect(url_for('Login'))
 

@@ -22,6 +22,33 @@ class ModelUser:
 
                         # Cambiamos row[2] por True
                         return User(row[0], row[1], True, row[3])
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
+                 
                     else:
                         print('mal contraseña')
 
