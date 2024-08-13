@@ -59,8 +59,9 @@ class AlumnoModel:
             alumno=[]
             with connection.cursor() as cursor:
                 cursor.execute("""
-                               SELECT id_alumno, nombre, apellido, segundo_apellido, fecha_nacimiento, direccion, numero, correo,id_carrera, matricula,fecha_ingreso, generacion, estado, preparatoria_egreso,id_usuario 
-                               FROM alumno
+                               SELECT id_alumno, A.nombre, apellido, segundo_apellido, fecha_nacimiento, direccion, numero, correo,C.nombre, matricula,fecha_ingreso, generacion, estado, preparatoria_egreso,id_usuario 
+                               FROM alumno AS A
+                               INNER JOIN carrera AS C ON A.id_carrera = C.id_carrera  
                                WHERE id_alumno = %s
                                """, (id_alumno,))
                 result = cursor.fetchone()
@@ -191,5 +192,29 @@ class AlumnoModel:
                 return alumnos
         except Exception as ex:
             logging.error(f"Error en buscar_alumnos: {str(ex)}")
+        finally:
+            connection.close()
+            
+    @classmethod
+    def get_carrera(cls, id_carrera):
+        try:
+            connection = get_connection()
+            carrera = []
+            with connection.cursor() as cursor:
+                cursor.execute("""SELECT 
+                               nombre 
+                               FROM carrera
+                               WHERE id_carrera = %s
+                               ORDER BY tipo desc   
+                               """,(id_carrera,))
+                result = cursor.fetchone()
+                if result:
+                    carrera={
+                        'nombre': result[0]
+                    }
+                    
+            return carrera
+        except Exception as ex:
+            logging.error(f"Error en get_carreras: {str(ex)}")
         finally:
             connection.close()

@@ -71,7 +71,6 @@ class MaestroModel:
                     VALUES (%s, %s, %s, %s, %s)
                     ON CONFLICT (id_alumno, id_materia, fase)
                     DO UPDATE SET calificacion = EXCLUDED.calificacion, tipo = EXCLUDED.tipo;
-
                 """, (id_alumno, calificacion, tipo, id_materia, fase))
             connection.commit()
         except Exception as ex:

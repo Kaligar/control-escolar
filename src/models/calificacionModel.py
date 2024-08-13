@@ -44,13 +44,13 @@ class CalificacionModel:
             
             with connection.cursor() as cursor:
                 cursor.execute("""
-                        SELECT M.modulo, M.clave, M.nombre AS materia, C.calificacion, C.tipo, C.fase
-                        FROM calificacion AS C
-                        INNER JOIN alumno AS A ON A.id_alumno = C.id_alumno
-                        INNER JOIN materia AS M ON M.id_materia = C.id_materia
-                        WHERE C.id_alumno = %s AND C.fase IN ('Parcial 1', 'Parcial 2', 'Parcial 3') AND M.modulo = A.cuatrimestre
-                        ORDER BY M.modulo, M.nombre, C.fase
-                        """, (id_alumno,))
+                    SELECT M.modulo, M.clave, M.nombre AS materia, C.calificacion, C.tipo, C.fase
+                    FROM calificacion AS C
+                    INNER JOIN alumno AS A ON A.id_alumno = C.id_alumno
+                    INNER JOIN materia AS M ON M.id_materia = C.id_materia
+                    WHERE C.id_alumno = %s AND C.fase IN ('Parcial 1', 'Parcial 2', 'Parcial 3') AND M.modulo = A.cuatrimestre
+                    ORDER BY M.modulo, M.nombre, C.fase
+                    """, (id_alumno,))
                 result = cursor.fetchall()
 
                 for row in result:
@@ -71,11 +71,12 @@ class CalificacionModel:
 
         except Exception as ex:
             logging.error(f"Error en calificaciones_parciales: {str(ex)}")
+            return None  # Add this line to return None in case of an error
 
         finally:
             if connection:
                 connection.close()
-                
+                    
     @classmethod
     def calificaciones_anteriores(cls, id_alumno):
         try:
@@ -106,63 +107,70 @@ class CalificacionModel:
             return calificaciones
         except Exception as ex:
             logging.error(f"Error en calificaciones_anteriores: {str(ex)}")
+            return None  # Add this line to return None in case of an error
         finally:
+            if connection:
                 connection.close()
                 
     @classmethod
     def insertar_o_actualizar_calificacion_final(cls, id_alumno, id_materia):
+        connection = None
         try:
             connection = get_connection()
-            
             with connection.cursor() as cursor:
-                # Primero, obtenemos las calificaciones de los parciales
+                # Obtener las calificaciones de los parciales
                 cursor.execute("""
                     SELECT fase, calificacion
                     FROM calificacion
-                    WHERE id_alumno = %s AND id_materia = %s AND fase IN ('Parcial 1', 'Parcial 2', 'Parcial 3')
-                    """, (id_alumno, id_materia))
+                    WHERE id_alumno = %(id_alumno)s AND id_materia = %(id_materia)s AND fase IN ('Parcial 1', 'Parcial 2', 'Parcial 3')
+                """, {'id_alumno': id_alumno, 'id_materia': id_materia})
                 parciales = cursor.fetchall()
-                
-                # Verificamos si tenemos los 3 parciales
+
+                # Verificar si tenemos los 3 parciales
                 if len(parciales) != 3:
                     logging.warning(f"No hay suficientes parciales para calificar el final")
-                
-                # Calculamos el promedio
+                    return False
+
+                # Calcular el promedio
                 promedio = sum(float(parcial[1]) for parcial in parciales) / 3
-                
-                # Si el promedio es mayor a 75, insertamos o actualizamos la calificación final
-                if promedio > 75:
-                    # Verificamos si ya existe una calificación final
+
+                # Insertar o actualizar la calificación final
+                cursor.execute("""
+                    INSERT INTO calificacion (id_alumno, id_materia, calificacion, fase, tipo)
+                    VALUES (%(id_alumno)s, %(id_materia)s, %(promedio)s, 'Final', 'ordinario')
+                    ON CONFLICT (id_alumno, id_materia, fase, tipo) DO UPDATE SET calificacion = %(promedio)s
+                """, {'id_alumno': id_alumno, 'id_materia': id_materia, 'promedio': promedio})
+
+                if promedio >= 70:  # Changed from 75 to 70
                     cursor.execute("""
-                        SELECT m.modulo
-                        FROM materia m
-                        WHERE m.id_materia = %s
-                        """, (id_materia,))
+                        SELECT modulo
+                        FROM materia
+                        WHERE id_materia = %(id_materia)s
+                    """, {'id_materia': id_materia})
                     modulo = cursor.fetchone()[0]
 
                     cursor.execute("""
-                        SELECT COUNT(*) as total_materias, 
-                        SUM(CASE WHEN c.calificacion >= 75 THEN 1 ELSE 0 END) as materias_aprobadas
+                        SELECT ROUND(100.0 * SUM(CASE WHEN c.calificacion >= 70 THEN 1 ELSE 0 END) / COUNT(*), 2) AS porcentaje_materias_aprobadas
                         FROM materia m
                         JOIN calificacion c ON m.id_materia = c.id_materia
-                        WHERE m.modulo = %s AND c.id_alumno = %s AND c.fase = 'Final' AND c.tipo = 'ordinario'
-                    """, (modulo, id_alumno))
-                    result = cursor.fetchone()
-                    total_materias, materias_aprobadas = result
+                        WHERE m.modulo = %(modulo)s AND c.id_alumno = %(id_alumno)s AND c.fase = 'Final' AND c.tipo = 'ordinario'
+                    """, {'modulo': modulo, 'id_alumno': id_alumno})
+                    porcentaje_materias_aprobadas = cursor.fetchone()[0]
 
-                    if total_materias == materias_aprobadas:
-                        # El alumno ha aprobado todas las materias del módulo
+                    if porcentaje_materias_aprobadas == 100.0:
                         cursor.execute("""
                             UPDATE alumno
-                            SET modulo_completado = %s
-                            WHERE id_alumno = %s
-                        """, (modulo, id_alumno))
-                        connection.commit()
+                            SET cuatrimestre = cuatrimestre + 1
+                            WHERE id_alumno = %(id_alumno)s
+                        """, {'id_alumno': id_alumno})
 
-                connection.commit()
-                return True if promedio > 75 else False
+            connection.commit()
+            return True
         except Exception as ex:
-            connection.rollback()
-            raise Exception(f"Error en insertar_o_actualizar_calificacion_final: {ex}")
+            if connection:
+                connection.rollback()
+            logging.error(f"Error al insertar o actualizar la calificación final: {ex}")
+            return False
         finally:
+            if connection:
                 connection.close()

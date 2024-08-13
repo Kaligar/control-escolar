@@ -13,7 +13,7 @@ class ModelUser:
 
                 cursor.execute(query, (user.username,))
                 row = cursor.fetchone()
-
+                print(query)
                 if row != None:
                     print(row)
                     stored_password = row[2]
@@ -22,32 +22,6 @@ class ModelUser:
 
                         # Cambiamos row[2] por True
                         return User(row[0], row[1], True, row[3])
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
                  
                     else:
                         print('mal contraseña')

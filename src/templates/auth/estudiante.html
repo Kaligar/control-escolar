@@ -33,28 +33,21 @@
 {% if alumno %}
 <div class="student-info">
     <h3>Información del Estudiante</h3>
-    <p><strong>ID:</strong> {{ alumno.id_alumno }}</p>
     <p><strong>Nombre:</strong> {{ alumno.nombre }} {{ alumno.apellido }} {{ alumno.segundo_apellido }}</p>
     <p><strong>Fecha de Nacimiento:</strong> {{ alumno.fecha_nacimiento }}</p>
-    <p><strong>Dirección:</strong> {{ alumno.direccion }}</p>
-    <p><strong>Teléfono:</strong> {{ alumno.numero }}</p>
-    <p><strong>ID Carrera:</strong> {{ alumno.id_carrera }}</p>
+    <p><strong>Carrera:</strong> {{ alumno.id_carrera }}</p>
     <p><strong>Matrícula:</strong> {{ alumno.matricula }}</p>
-    <p><strong>Generación:</strong> {{ alumno.generacion }}</p>
+
     <p><strong>Estado:</strong> {{ alumno.estado }}</p>
-    <p><strong>Fecha de Ingreso:</strong> {{ alumno.fecha_ingreso }}</p>
-    <p><strong>Correo:</strong> {{ alumno.correo }}</p>
-    <p><strong>Género:</strong> {{ alumno.genero }}</p>
-    <p><strong>Preparatoria de Egreso:</strong> {{ alumno.preparatoria_egreso }}</p>
 </div>
 
 <h3>Calificaciones</h3>
-
+{{alumno.id_alumno}}
 <p>Promedio general: [Cálculo pendiente]</p>
 
 <div class="materias-en-curso">
     <h4>Materias en curso:</h4>
-    {{calificaciones_parciales}}
+
 {% if calificaciones_parciales %}
     <table>
         <thead>

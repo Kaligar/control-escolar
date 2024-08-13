@@ -6,9 +6,10 @@
 <h2>Detalles del Grupo</h2>
 
 {% if grupo %}
+
     <p>Grupo: {{ grupo.nombre_grupo }}</p>
     <p>Carrera: {{ grupo.carrera }}</p>
-
+    <div class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
     <h3>Calificar el grupo:</h3>
     {% if alumnos %}
     <form action="{{ url_for('grupo_detalle', id_grupo=grupo.id_grupo) }}" method="post">
@@ -53,6 +54,7 @@
     {% else %}
         <p>No hay alumnos en este grupo.</p>
     {% endif %}
+</div>
 {% else %}
     <p>No se encontró información del grupo.</p>
 {% endif %}

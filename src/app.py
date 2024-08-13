@@ -206,9 +206,10 @@ def estudiante():
             return redirect(url_for('index'))
         
         alumno_data = AlumnoModel.get_alumno(id_alumno)
+        
         calificaciones_parciales = CalificacionModel.calificaciones_parciales(id_alumno)
         calificaciones_anteriores = CalificacionModel.calificaciones_anteriores(id_alumno)
-        
+        print(calificaciones_anteriores)
         return render_template('auth/estudiante.html', 
                                alumno=alumno_data, 
                                calificaciones_parciales=calificaciones_parciales,
